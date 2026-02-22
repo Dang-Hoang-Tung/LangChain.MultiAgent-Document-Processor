@@ -9,12 +9,14 @@ from pydantic import BaseModel, Field
 import re
 import json
 from datetime import datetime
+import ast
+import operator as op
 
 
 class ToolLogger:
     """Logs tool usage with automatic persistence"""
 
-    def __init__(self, logs_dir: str = "./logs", session_id: str = None):
+    def __init__(self, logs_dir: str = "./logs", session_id: str = ""):
         self.logs = []
         self.logs_dir = logs_dir
         self.session_id = session_id
@@ -59,15 +61,43 @@ class ToolLogger:
             json.dump(self.logs, f, indent=2)
 
 
-# TODO: Implement the calculator tool using the @tool decorator.
 # This tool should safely evaluate mathematical expressions and log its usage.
-# Refer to README.md Task 4.1 for detailed implementation requirements.
 def create_calculator_tool(logger: ToolLogger):
-    """
-    Creates a calculator tool - TO BE IMPLEMENTED
-    """
-    # Your implementation here
-    pass
+    # Safe evaluator (no eval)
+    allowed_ops = {
+        ast.Add: op.add,
+        ast.Sub: op.sub,
+        ast.Mult: op.mul,
+        ast.Div: op.truediv,
+        ast.Pow: op.pow,
+        ast.USub: op.neg,
+        ast.Mod: op.mod,
+    }
+
+    def _eval(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+            return node.value
+        if isinstance(node, ast.BinOp) and type(node.op) in allowed_ops:
+            return allowed_ops[type(node.op)](_eval(node.left), _eval(node.right))
+        if isinstance(node, ast.UnaryOp) and type(node.op) in allowed_ops:
+            return allowed_ops[type(node.op)](_eval(node.operand))
+        raise ValueError("Unsupported expression")
+
+    @tool("calculator")
+    def calculator(expression: str) -> str:
+        """Safely evaluate a mathematical expression (uses a restricted AST evaluator)."""
+        try:
+            tree = ast.parse(expression, mode="eval")
+            result = _eval(tree.body)
+
+            logger.log_tool_use("calculator", {"expression": expression}, {"result": result})
+            return str(result)
+        except Exception as e:
+            err = f"Calculator error: {e}"
+            logger.log_tool_use("calculator", {"expression": expression}, {"error": err})
+            return err
+
+    return calculator
 
 
 def create_document_search_tool(retriever, logger: ToolLogger):
@@ -222,7 +252,7 @@ def create_document_search_tool(retriever, logger: ToolLogger):
         return retriever._parse_and_retrieve_by_amount(query)
 
     # Store helper function as attribute
-    document_search._handle_amount_search = _handle_amount_search
+    document_search._handle_amount_search = _handle_amount_search # type: ignore
 
     return document_search
 

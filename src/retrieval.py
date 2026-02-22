@@ -2,7 +2,7 @@ import json
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 import re
-from schemas import DocumentChunk
+from src.schemas import DocumentChunk
 
 
 @dataclass
@@ -373,9 +373,9 @@ class SimulatedRetriever:
                 return self.retrieve_by_amount_range(min_amount=amount)
             elif comparison_type in ["less", "under", "below", "less than"]:
                 return self.retrieve_by_amount_range(max_amount=amount)
-            elif comparison_type in ["exact", "exactly", "equal", "equals"]:
+            elif comparison_type in ["exact", "exactly", "equal", "equals"] and amount is not None:
                 return self.retrieve_by_exact_amount(amount)
-            elif comparison_type in ["approximate", "around", "about", "roughly"]:
+            elif comparison_type in ["approximate", "around", "about", "roughly"] and amount is not None:
                 return self.retrieve_by_approximate_amount(amount)
             elif comparison_type in ["between", "range"]:
                 return self.retrieve_by_amount_range(min_amount=min_amount, max_amount=max_amount)

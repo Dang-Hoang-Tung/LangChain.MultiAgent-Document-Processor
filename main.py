@@ -117,7 +117,7 @@ def main():
                 if result.get("tools_used"):
                     print(f"\nTOOLS USED: {', '.join(result['tools_used'])}", color='magenta')
                 if result.get("summary"):
-                    print(f"\nCONVERSATION SUMMARY: {result['summary']}", color='cyan')
+                    print(f"\nCONVERSATION SUMMARY: {result['summary']}", color='cyan') # type: ignore
 
 
             else:

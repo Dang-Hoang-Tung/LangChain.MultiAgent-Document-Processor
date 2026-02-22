@@ -57,7 +57,7 @@ class SessionState(BaseModel):
     """Session state"""
     session_id: str
     user_id: str
-    conversation_history: list[BaseMessage] = Field(default_factory=list)
+    conversation_history: list[dict[str, Any]] = Field(default_factory=list)
     document_context: list[str] = Field(default_factory=list, description="Active document IDs")
     created_at: datetime = Field(default_factory=datetime.now)
     last_updated: datetime = Field(default_factory=datetime.now)

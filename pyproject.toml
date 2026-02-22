@@ -19,6 +19,7 @@ dependencies = [
     "langgraph-supervisor>=0.0.31",
     "langgraph>=1.0.8",
     "pydantic>=2.0.0",
+    "print_color"
 ]
 
 [project.optional-dependencies]

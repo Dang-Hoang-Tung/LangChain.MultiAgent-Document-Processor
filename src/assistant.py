@@ -4,10 +4,11 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 import uuid
 
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, messages_from_dict, messages_to_dict
+from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 
-from schemas import SessionState
+from src.schemas import SessionState
 from retrieval import SimulatedRetriever
 from tools import get_all_tools, ToolLogger
 from agent import create_workflow, AgentState
@@ -29,7 +30,7 @@ class DocumentAssistant:
     ):
         # Initialize LLM
         self.llm = ChatOpenAI(
-            api_key=openai_api_key,
+            api_key=openai_api_key, # type: ignore
             model=model_name,
             temperature=temperature,
             base_url="https://openai.vocareum.com/v1"
@@ -116,13 +117,11 @@ class DocumentAssistant:
     def process_message(self, user_input: str) -> Dict[str, Any]:
         """Process a user message using the LangGraph workflow."""
 
-#TODO: Complete the config dictionary to set the thread_ud, llm, and tools to the workflow
-        # Refer to README.md Task 2.6 for details
-        config = {
+        config: RunnableConfig = {
             "configurable": {
-                "thread_id": # TODO: Set this to the session id of the current sessions
-                "llm": # TODO Set this to the LLM instance (self.llm)
-                "tools": # TODO Set this to the list of tools
+                "thread_id": self.current_session.session_id if self.current_session else None,
+                "llm": self.llm,
+                "tools": self.tools
             }
         }
 
@@ -133,7 +132,7 @@ class DocumentAssistant:
             "user_input": user_input,
             "intent": None,
             "next_step": "classify_intent",
-            "conversation_history": self.current_session.conversation_history,
+            # "conversation_history": self.current_session.conversation_history,
             "conversation_summary": self._get_conversation_summary(config),
             "active_documents": self.current_session.document_context,
             "current_response": None,
@@ -149,7 +148,7 @@ class DocumentAssistant:
             # Update session with new state
             if final_state.get("messages"):
 
-                self.current_session.conversation_history.append(final_state)
+                self.current_session.conversation_history = messages_to_dict(final_state["messages"])
                 self.current_session.last_updated = datetime.now()
                 if final_state.get("active_documents"):
                     self.current_session.document_context = list(set(
@@ -157,12 +156,20 @@ class DocumentAssistant:
                         final_state["active_documents"]
                     ))
                 self._save_session()
+
+            response = None
+            if final_state.get("messages"):
+                response = final_state["messages"][-1].content
+            
+            intent_obj = final_state.get("intent")
+            intent = intent_obj.model_dump() if intent_obj else None
+
             return {
                 "success": True,
-                "response": final_state.get("messages")[-1].content if final_state.get("messages") else None,
-                "intent": final_state.get("intent").dict() if final_state.get("intent") else None,
+                "response": response,
+                "intent": intent,
                 "tools_used": final_state.get("tools_used", []),
-                "sources": final_state.get("active_documents", []),
+                "active_documents": final_state.get("active_documents", []),
                 "actions_taken": final_state.get("actions_taken", []),
                 "summary": final_state.get("conversation_summary", [])
             }
