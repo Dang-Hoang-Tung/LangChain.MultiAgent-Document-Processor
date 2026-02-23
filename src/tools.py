@@ -143,7 +143,7 @@ def create_document_search_tool(retriever, logger: ToolLogger):
             if search_type == "all":
                 results = retriever.retrieve_all()
 
-            if search_type == "keyword":
+            elif search_type == "keyword":
                 results = retriever.retrieve_by_keyword(query)
 
             elif search_type == "type" and doc_type:

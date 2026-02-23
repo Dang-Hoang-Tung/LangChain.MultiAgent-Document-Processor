@@ -12,7 +12,6 @@ from src.schemas import SessionState
 from retrieval import SimulatedRetriever
 from tools import get_all_tools, ToolLogger
 from agent import create_workflow, AgentState
-from prompts import MEMORY_SUMMARY_PROMPT
 
 
 class DocumentAssistant:
@@ -101,7 +100,7 @@ class DocumentAssistant:
 
         current_state = self.workflow.get_state(config).values
 
-        summary = current_state.get("conversation_summary", [])
+        summary = current_state.get("conversation_summary", "")
         return summary
 
     def _get_conversation_history(self, config) -> List[BaseMessage]:
@@ -171,7 +170,7 @@ class DocumentAssistant:
                 "tools_used": final_state.get("tools_used", []),
                 "active_documents": final_state.get("active_documents", []),
                 "actions_taken": final_state.get("actions_taken", []),
-                "summary": final_state.get("conversation_summary", [])
+                "summary": final_state.get("conversation_summary", "")
             }
         except Exception as e:
             return {

@@ -15,8 +15,7 @@ from src.schemas import (
     AnswerResponse, SummarizationResponse, CalculationResponse, UpdateMemoryResponse
 )
 from langgraph.checkpoint.memory import InMemorySaver
-from prompts import get_intent_classification_prompt, get_chat_prompt_template, MEMORY_SUMMARY_PROMPT
-from src.types import IntentType
+from src.prompts import get_intent_classification_prompt, get_chat_prompt_template, MEMORY_SUMMARY_PROMPT
 
 NextStep = Literal["classify_intent", "qa_agent", "summarization_agent", "calculation_agent", "update_memory", "__end__"]
 
@@ -208,6 +207,7 @@ def update_memory(state: AgentState, config: RunnableConfig) -> AgentState:
 
     response: UpdateMemoryResponse = structured_llm.invoke(prompt_with_history)
     return {
+        "actions_taken": ["update_memory"],
         "conversation_summary": response.summary,
         "active_documents": response.document_ids,
         "next_step": "__end__",
