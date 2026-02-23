@@ -10,6 +10,7 @@ python main.py
 report-building-agent
 ├── src/
 │ ├── schemas.py # Pydantic models
+│ ├── types.py # Common types
 │ ├── retrieval.py # Document retrieval
 │ ├── tools.py # Agent tools
 │ ├── prompts.py # Prompt templates
@@ -53,9 +54,9 @@ The system maintains conversation via the InMemorySaver checkpointer:
 - Providing context to subsequent requests
 
 
-## Expected Behavior
+## Behavior
 
-The assistant should be able to:
+The assistant is able to:
 
 - Classify user intents correctly
 - Search and retrieve relevant documents
