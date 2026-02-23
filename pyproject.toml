@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "langchain-project"
+name = "multi-agent-document-processor"
 version = "0.1.0"
-description = "LangChain learning and experimentation project"
+description = "LangChain Multi-Agent assistant for processing document-related enquiries (QA, summarisation, calculation)"
 requires-python = ">=3.10"
 dependencies = [
     "python-dotenv>=1.2.1",
